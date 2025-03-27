@@ -103,14 +103,14 @@ const ConsoleInterface: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-console">
+    <div className="flex flex-col h-screen bg-[var(--vscode-editor-bg)] vscode-dark">
       <ConsoleHeader title="Extracting Plain Text from Websites" />
       
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        <div className="py-2 border-b border-console-border bg-console-highlight">
+        <div className="py-2 border-b border-[var(--vscode-border)] bg-[#2d2d2d]">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="flex items-center py-1 px-3 bg-console-accent rounded text-sm font-mono text-console-foreground">
-              <span className="text-console-syntax-keyword mr-2">npm</span> run start
+            <div className="vscode-terminal-command">
+              <span className="text-[#C586C0] mr-2">npm</span> run start
             </div>
           </div>
         </div>

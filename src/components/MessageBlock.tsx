@@ -24,8 +24,8 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
   return (
     <div 
       className={cn(
-        "w-full px-4 py-4 animate-fade-up",
-        type === 'user' ? "bg-console-muted" : "bg-transparent",
+        "w-full px-4 py-3 animate-fade-up",
+        type === 'user' ? "bg-[#2d2d2d]" : "bg-transparent",
         type === 'loading' && "opacity-80"
       )}
     >
@@ -42,7 +42,7 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
             {contentParts.map((part, index) => (
               <React.Fragment key={index}>
                 {part && (
-                  <div className="prose prose-invert prose-pre:bg-console-highlight prose-pre:text-sm max-w-none">
+                  <div className="prose prose-invert prose-pre:bg-[#1e1e1e] prose-pre:text-sm max-w-none text-[13px] leading-relaxed">
                     {part.split('\n').map((line, lineIndex) => (
                       <p key={lineIndex} className={lineIndex > 0 ? "mt-2" : ""}>{line}</p>
                     ))}

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Check, Copy, X } from 'lucide-react';
+import { Check, Copy, X, CornerUpLeft, Maximize } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,59 +35,82 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
 
   const lines = code.trim().split('\n');
   
-  // Very simple syntax highlighting function - in a real app, use a library like Prism or highlight.js
+  // Simple syntax highlighting similar to VS Code
   const formatLine = (line: string) => {
+    // Handle VS Code style code
     return line
-      .replace(/(const|let|var|await|return|import|export|from|function)/g, '<span class="syntax-keyword">$1</span>')
-      .replace(/(["'`].*?["'`])/g, '<span class="syntax-string">$1</span>')
-      .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="syntax-function">$1</span>')
-      .replace(/(\/\/.*$)/g, '<span class="syntax-comment">$1</span>')
-      .replace(/(\b\d+\b)/g, '<span class="syntax-constant">$1</span>')
-      .replace(/(\.\w+)/g, '<span class="syntax-variable">$1</span>');
+      .replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span style="color: #C586C0;">$1</span>')
+      .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
+      .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
+      .replace(/(\/\/.*$)/g, '<span style="color: #6A9955;">$1</span>')
+      .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
+      .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
+      .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
   };
 
   return (
     <div className={cn(
-      "rounded-md overflow-hidden w-full my-4 border border-console-border bg-console group relative transition-all duration-200",
-      isRemoved && "bg-red-950/30 border-red-800/40",
-      isAdded && "bg-green-950/30 border-green-800/40"
+      "rounded-sm overflow-hidden w-full my-4 border border-[var(--vscode-border)] bg-[var(--vscode-editor-bg)] group relative transition-all duration-200",
+      isRemoved && "bg-[var(--vscode-removed-bg)]",
+      isAdded && "bg-[var(--vscode-added-bg)]"
     )}>
-      <div className="flex items-center justify-between px-4 py-2 bg-console-accent text-sm font-mono text-muted-foreground">
+      <div className="flex items-center justify-between px-3 py-1 bg-[#2d2d2d] text-xs font-mono text-[#cccccc]">
         <div className="flex items-center space-x-2">
-          <span className="text-xs">{language}</span>
-          {isRemoved && <span className="text-xs text-red-400">removed</span>}
-          {isAdded && <span className="text-xs text-green-400">added</span>}
+          <span className="vscode-file-tab flex items-center">
+            <span className="file-icon opacity-70">{language === 'ts' ? 'TS' : language === 'javascript' ? 'JS' : language}</span>
+            <span className="ml-1">{language === 'ts' ? 'model-listeners.ts' : 'vite.main.config.ts'}</span>
+            {isRemoved && <span className="ml-2 text-xs text-red-400">-1</span>}
+            {isAdded && <span className="ml-2 text-xs text-green-400">+1</span>}
+          </span>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-7 w-7 text-muted-foreground hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={handleCopy}
-        >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </Button>
+        <div className="flex items-center space-x-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 text-muted-foreground hover:text-white"
+          >
+            <Maximize className="h-3 w-3" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 text-muted-foreground hover:text-white"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 text-muted-foreground hover:text-white"
+            onClick={handleCopy}
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+          </Button>
+        </div>
       </div>
-      <div className="p-4 overflow-x-auto scrollbar-thin">
-        <pre className="font-mono text-sm">
+      <div className="p-3 overflow-x-auto scrollbar-thin bg-[#1e1e1e]">
+        <pre className="font-mono text-xs leading-relaxed">
           <code ref={codeRef}>
-            {lines.map((line, i) => (
-              <div 
-                key={i} 
-                className={cn(
-                  "whitespace-pre py-0.5", 
-                  highlight.includes(i+1) && "bg-console-muted",
-                  isRemoved && "text-red-400 bg-red-900/20",
-                  isAdded && "text-green-400 bg-green-900/20"
-                )}
-              >
-                {showLineNumbers && (
-                  <span className="inline-block w-8 text-right mr-4 text-console-syntax-comment select-none">
-                    {i + 1}
-                  </span>
-                )}
-                <span dangerouslySetInnerHTML={{ __html: formatLine(line) }} />
-              </div>
-            ))}
+            {lines.map((line, i) => {
+              const isHighlighted = highlight.includes(i+1);
+              const lineClasses = cn(
+                "whitespace-pre py-[2px]", 
+                isHighlighted && "vscode-line-highlight bg-[#2a2d2e]",
+                isRemoved && "vscode-deleted-line",
+                isAdded && "vscode-added-line"
+              );
+              
+              return (
+                <div key={i} className={lineClasses}>
+                  {showLineNumbers && (
+                    <span className="inline-block w-8 text-right mr-4 text-[#858585] select-none">
+                      {i + 1}
+                    </span>
+                  )}
+                  <span dangerouslySetInnerHTML={{ __html: formatLine(line) }} />
+                </div>
+              );
+            })}
           </code>
         </pre>
       </div>

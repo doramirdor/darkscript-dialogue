@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Plus, AtSign } from 'lucide-react';
+import { Send, AtSign, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ConsoleInputProps {
@@ -45,32 +45,42 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
   }, [message]);
 
   return (
-    <div className="border-t border-console-border bg-console py-4 px-4 w-full">
+    <div className="border-t border-[var(--vscode-border)] bg-[var(--vscode-editor-bg)] py-3 px-4 w-full">
       {isGenerating ? (
-        <div className="flex max-w-4xl mx-auto space-x-2">
-          <Button 
-            variant="outline" 
-            className="text-sm flex-1 py-6 bg-console-accent hover:bg-console-highlight border-console-border"
-            onClick={onStop}
-          >
-            <span className="mr-2">Stop</span> ⌘⏎
-          </Button>
-          <Button 
-            className="text-sm flex-1 py-6 bg-blue-600 hover:bg-blue-700"
-            onClick={onAccept}
-          >
-            <span className="mr-2">Accept</span> ⌘⏎
-          </Button>
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center space-x-2">
+            <div className="h-3 w-3 rounded-full bg-muted-foreground animate-pulse"></div>
+            <div className="h-3 w-3 rounded-full bg-muted-foreground animate-pulse delay-150"></div>
+            <div className="h-3 w-3 rounded-full bg-muted-foreground animate-pulse delay-300"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Generating...</span>
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              className="text-xs py-1 px-3 h-7 bg-[var(--vscode-input-bg)] hover:bg-[var(--vscode-button-hover-bg)] border-[var(--vscode-border)]"
+              onClick={onStop}
+            >
+              <span>Stop</span>
+              <span className="ml-2 opacity-70 text-xs">⌘⏎</span>
+            </Button>
+            <Button 
+              className="text-xs py-1 px-3 h-7 bg-[var(--vscode-button-bg)] hover:bg-[var(--vscode-button-hover-bg)]"
+              onClick={onAccept}
+            >
+              <span>Accept</span>
+              <span className="ml-2 opacity-70 text-xs">⌘⏎</span>
+            </Button>
+          </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="relative max-w-4xl mx-auto">
-          <div className="flex items-end mb-1 text-xs text-muted-foreground">
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="flex items-center mb-1 text-xs text-muted-foreground">
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
               <AtSign className="h-3 w-3 mr-1" /> Add context
             </Button>
           </div>
           
-          <div className="relative flex items-center rounded-md border border-console-border bg-console-accent">
+          <div className="relative flex items-center border border-[var(--vscode-input-border)] bg-[var(--vscode-input-bg)] rounded-sm">
             <textarea
               ref={textareaRef}
               value={message}
@@ -78,18 +88,10 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               rows={1}
-              className="flex-1 py-3 px-4 bg-transparent focus:outline-none resize-none max-h-[200px] scrollbar-thin"
+              className="flex-1 py-2 px-3 bg-transparent focus:outline-none resize-none max-h-[200px] scrollbar-thin text-sm"
             />
             
             <div className="flex items-center pr-2">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-muted-foreground hover:text-white"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
               <Button 
                 type="submit" 
                 variant="ghost" 
@@ -109,6 +111,11 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
               </span>
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
                 Auto
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground opacity-80">
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                <Image className="h-3.5 w-3.5 mr-1" /> Send
               </Button>
             </div>
           </div>

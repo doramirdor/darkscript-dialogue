@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Maximize, MoreHorizontal, History } from 'lucide-react';
+import { X, Maximize, Minimize, Plus, RotateCcw, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ConsoleHeaderProps {
@@ -9,22 +9,22 @@ interface ConsoleHeaderProps {
 
 const ConsoleHeader: React.FC<ConsoleHeaderProps> = ({ title }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-console-border bg-console">
+    <div className="vscode-title-bar">
       <div className="flex items-center space-x-2">
-        <h1 className="text-lg font-medium text-white">{title}</h1>
+        <h1 className="vscode-title-text">{title}</h1>
       </div>
-      <div className="flex items-center space-x-1">
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-          <History className="h-4 w-4" />
+      <div className="vscode-title-actions">
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
+          <Plus className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-          <MoreHorizontal className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
+          <RotateCcw className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-          <Maximize className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
+          <MoreHorizontal className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-          <X className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
+          <X className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

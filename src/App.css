@@ -14,6 +14,24 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* VS Code specific styling */
+.vscode-dark {
+  --vscode-bg: #1e1e1e;
+  --vscode-sidebar-bg: #252526;
+  --vscode-editor-bg: #1e1e1e;
+  --vscode-statusbar-bg: #007acc;
+  --vscode-editor-line-highlight: #2a2d2e;
+  --vscode-text: #cccccc;
+  --vscode-input-bg: #3c3c3c;
+  --vscode-input-border: #3c3c3c;
+  --vscode-button-bg: #0e639c;
+  --vscode-button-hover-bg: #1177bb;
+  --vscode-removed-bg: rgba(255, 0, 0, 0.2);
+  --vscode-added-bg: rgba(0, 255, 0, 0.2);
+  --vscode-border: #474747;
 }
 
 /* Transitions and animations */
@@ -43,4 +61,101 @@ html, body {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* VS Code specific elements */
+.vscode-editor {
+  background-color: var(--vscode-editor-bg);
+  color: var(--vscode-text);
+}
+
+.vscode-statusbar {
+  background-color: var(--vscode-statusbar-bg);
+  color: white;
+  height: 22px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.vscode-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--vscode-sidebar-bg);
+  border-bottom: 1px solid var(--vscode-border);
+  padding: 0 8px;
+  height: 35px;
+}
+
+.vscode-title-actions {
+  display: flex;
+  align-items: center;
+}
+
+.vscode-title-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--vscode-text);
+}
+
+.vscode-line-highlight {
+  background-color: var(--vscode-editor-line-highlight);
+}
+
+.vscode-deleted-line {
+  background-color: var(--vscode-removed-bg);
+}
+
+.vscode-added-line {
+  background-color: var(--vscode-added-bg);
+}
+
+.vscode-panel {
+  background-color: var(--vscode-editor-bg);
+  border-top: 1px solid var(--vscode-border);
+}
+
+.vscode-terminal-command {
+  background-color: #333333;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #e4e4e4;
+  margin: 8px 0;
+}
+
+.vscode-file-tab {
+  display: flex;
+  align-items: center;
+  background-color: rgba(45, 45, 45, 0.6);
+  color: #e4e4e4;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-right: 1px solid var(--vscode-border);
+}
+
+.vscode-file-tab.active {
+  background-color: var(--vscode-editor-bg);
+}
+
+.vscode-file-tab .file-icon {
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.vscode-input {
+  background-color: var(--vscode-input-bg);
+  border: 1px solid var(--vscode-input-border);
+  color: var(--vscode-text);
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.vscode-input:focus {
+  outline: 1px solid #007fd4;
 }
