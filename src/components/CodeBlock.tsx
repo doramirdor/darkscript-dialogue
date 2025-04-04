@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Check, Copy, X, CornerUpLeft, Maximize } from 'lucide-react';
 import { useState } from 'react';
@@ -40,30 +41,27 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
 
   const lines = code.trim().split('\n');
   
+  // Simple syntax highlighting similar to VS Code
   const formatLine = (line: string) => {
     if (language === 'python') {
       return line
-        .replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span style="color: #C792EA;">$1</span>')
-        .replace(/(["'`].*?["'`])/g, '<span style="color: #C3E88D;">$1</span>')
-        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #F97316;">$1</span>')
-        .replace(/(#.*$)/g, '<span style="color: #676E95;">$1</span>')
-        .replace(/(\b\d+\b)/g, '<span style="color: #89DDFF;">$1</span>')
-        .replace(/(\.\w+)/g, '<span style="color: #82AAFF;">$1</span>')
-        .replace(/(\{|\}|\(|\)|\[|\]|:|;|,|\+|-|\*|\/|%|=|==|!=|>=|<=|>|<)/g, '<span style="color: #EEFFFF;">$1</span>')
-        .replace(/\b(self|cls)\b/g, '<span style="color: #D946EF;">$1</span>')
-        .replace(/\b(True|False|None)\b/g, '<span style="color: #FFCB6B;">$1</span>');
+        .replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span style="color: #C586C0;">$1</span>')
+        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
+        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
+        .replace(/(#.*$)/g, '<span style="color: #6A9955;">$1</span>')
+        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
+        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
+        .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
     } else {
+      // Default JavaScript/TypeScript highlighting
       return line
-        .replace(/(const|let|var|await|async|return|import|export|from|function|if|else|for|while|switch|case|break|continue|try|catch|finally|throw)/g, '<span style="color: #C792EA;">$1</span>')
-        .replace(/(["'`].*?["'`])/g, '<span style="color: #C3E88D;">$1</span>')
-        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #F97316;">$1</span>')
-        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/g, '<span style="color: #676E95;">$1</span>')
-        .replace(/(\b\d+\b)/g, '<span style="color: #89DDFF;">$1</span>')
-        .replace(/(\.\w+)/g, '<span style="color: #82AAFF;">$1</span>')
-        .replace(/(\{|\}|\(|\)|\[|\]|;|,|\+|-|\*|\/|%|=|==|===|!=|!==|>=|<=|>|<)/g, '<span style="color: #EEFFFF;">$1</span>')
-        .replace(/\b(this)\b/g, '<span style="color: #D946EF;">$1</span>')
-        .replace(/\b(true|false|null|undefined)\b/g, '<span style="color: #FFCB6B;">$1</span>')
-        .replace(/\b(interface|type|class|extends|implements)\b/g, '<span style="color: #0EA5E9;">$1</span>');
+        .replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span style="color: #C586C0;">$1</span>')
+        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
+        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
+        .replace(/(\/\/.*$)/g, '<span style="color: #6A9955;">$1</span>')
+        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
+        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
+        .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
     }
   };
 
@@ -121,8 +119,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
             {lines.map((line, i) => {
               const isHighlighted = highlight.includes(i+1);
               const lineClasses = cn(
-                "whitespace-pre py-[2px] block w-full", 
-                isHighlighted && "vscode-line-highlight bg-[#2a2d2e] border-l-2 border-[#007fd4] pl-[2px] -ml-[2px]",
+                "whitespace-pre py-[2px]", 
+                isHighlighted && "vscode-line-highlight bg-[#2a2d2e]",
                 isRemoved && "vscode-deleted-line",
                 isAdded && "vscode-added-line"
               );
