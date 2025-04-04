@@ -5,16 +5,28 @@ import CodeBlock from './CodeBlock';
 
 export type MessageType = 'user' | 'system' | 'loading';
 
+export interface CodeBlockData {
+  file: string;
+  startLine: number;
+  endLine: number;
+  newCode: string;
+  description: string;
+  language?: string;
+  highlight?: number[];
+  isRemoved?: boolean;
+  isAdded?: boolean;
+}
+
 interface MessageBlockProps {
   content: string;
   type: MessageType;
-  codeBlocks?: Array<{
+  codeBlocks?: (CodeBlockData | {
     code: string;
     language?: string;
     highlight?: number[];
     isRemoved?: boolean;
     isAdded?: boolean;
-  }>;
+  })[];
 }
 
 const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks = [] }) => {
@@ -49,13 +61,26 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
                   </div>
                 )}
                 {index < contentParts.length - 1 && index < codeBlocks.length && (
-                  <CodeBlock 
-                    code={codeBlocks[index].code} 
-                    language={codeBlocks[index].language} 
-                    highlight={codeBlocks[index].highlight}
-                    isRemoved={codeBlocks[index].isRemoved}
-                    isAdded={codeBlocks[index].isAdded}
-                  />
+                  'file' in codeBlocks[index] ? (
+                    <CodeBlock 
+                      code={codeBlocks[index].newCode || (codeBlocks[index] as any).code} 
+                      language={codeBlocks[index].file?.endsWith('.py') ? 'python' : 'typescript'}
+                      fileName={codeBlocks[index].file}
+                      startLine={(codeBlocks[index] as CodeBlockData).startLine}
+                      description={(codeBlocks[index] as CodeBlockData).description}
+                      highlight={codeBlocks[index].highlight}
+                      isRemoved={codeBlocks[index].isRemoved}
+                      isAdded={codeBlocks[index].isAdded}
+                    />
+                  ) : (
+                    <CodeBlock 
+                      code={(codeBlocks[index] as any).code}
+                      language={(codeBlocks[index] as any).language}
+                      highlight={(codeBlocks[index] as any).highlight}
+                      isRemoved={(codeBlocks[index] as any).isRemoved}
+                      isAdded={(codeBlocks[index] as any).isAdded}
+                    />
+                  )
                 )}
               </React.Fragment>
             ))}

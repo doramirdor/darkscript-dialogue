@@ -12,15 +12,21 @@ interface CodeBlockProps {
   highlight?: number[];
   isRemoved?: boolean;
   isAdded?: boolean;
+  fileName?: string;
+  startLine?: number;
+  description?: string;
 }
 
 const CodeBlock: React.FC<CodeBlockProps> = ({
   code,
-  language = 'javascript',
+  language = 'python',
   showLineNumbers = true,
   highlight = [],
   isRemoved = false,
-  isAdded = false
+  isAdded = false,
+  fileName = '',
+  startLine = 1,
+  description = ''
 }) => {
   const [copied, setCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
@@ -37,15 +43,26 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   
   // Simple syntax highlighting similar to VS Code
   const formatLine = (line: string) => {
-    // Handle VS Code style code
-    return line
-      .replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span style="color: #C586C0;">$1</span>')
-      .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
-      .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
-      .replace(/(\/\/.*$)/g, '<span style="color: #6A9955;">$1</span>')
-      .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
-      .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
-      .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
+    if (language === 'python') {
+      return line
+        .replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span style="color: #C586C0;">$1</span>')
+        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
+        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
+        .replace(/(#.*$)/g, '<span style="color: #6A9955;">$1</span>')
+        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
+        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
+        .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
+    } else {
+      // Default JavaScript/TypeScript highlighting
+      return line
+        .replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span style="color: #C586C0;">$1</span>')
+        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
+        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
+        .replace(/(\/\/.*$)/g, '<span style="color: #6A9955;">$1</span>')
+        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
+        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
+        .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
+    }
   };
 
   return (
@@ -54,11 +71,19 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
       isRemoved && "bg-[var(--vscode-removed-bg)]",
       isAdded && "bg-[var(--vscode-added-bg)]"
     )}>
+      {description && (
+        <div className="px-3 py-2 text-xs border-b border-[var(--vscode-border)] text-[#cccccc] bg-[#1e1e1e]">
+          {description}
+        </div>
+      )}
       <div className="flex items-center justify-between px-3 py-1 bg-[#2d2d2d] text-xs font-mono text-[#cccccc]">
         <div className="flex items-center space-x-2">
           <span className="vscode-file-tab flex items-center">
-            <span className="file-icon opacity-70">{language === 'ts' ? 'TS' : language === 'javascript' ? 'JS' : language}</span>
-            <span className="ml-1">{language === 'ts' ? 'model-listeners.ts' : 'vite.main.config.ts'}</span>
+            <span className="file-icon opacity-70">
+              {language === 'python' ? 'PY' : language === 'javascript' ? 'JS' : language === 'typescript' ? 'TS' : language}
+            </span>
+            <span className="ml-1">{fileName || (language === 'python' ? 'train.py' : 'vite.main.config.ts')}</span>
+            <span className="ml-2 text-xs text-muted-foreground">Lines: {startLine}-{startLine + lines.length - 1}</span>
             {isRemoved && <span className="ml-2 text-xs text-red-400">-1</span>}
             {isAdded && <span className="ml-2 text-xs text-green-400">+1</span>}
           </span>
@@ -104,7 +129,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                 <div key={i} className={lineClasses}>
                   {showLineNumbers && (
                     <span className="inline-block w-8 text-right mr-4 text-[#858585] select-none">
-                      {i + 1}
+                      {startLine + i}
                     </span>
                   )}
                   <span dangerouslySetInnerHTML={{ __html: formatLine(line) }} />
