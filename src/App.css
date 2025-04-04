@@ -32,6 +32,7 @@ html, body {
   --vscode-removed-bg: rgba(255, 0, 0, 0.2);
   --vscode-added-bg: rgba(0, 255, 0, 0.2);
   --vscode-border: #474747;
+  --vscode-highlight-border: #007fd4;
 }
 
 /* Transitions and animations */
@@ -102,6 +103,17 @@ html, body {
 
 .vscode-line-highlight {
   background-color: var(--vscode-editor-line-highlight);
+  position: relative;
+}
+
+.vscode-line-highlight::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--vscode-highlight-border);
 }
 
 .vscode-deleted-line {

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ConsoleHeader from './ConsoleHeader';
 import ConsoleInput from './ConsoleInput';
@@ -23,21 +22,24 @@ const pythonCodeData: CodeBlockData[] = [
     "startLine": 1,
     "endLine": 50,
     "newCode": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom torch.utils.data import DataLoader\nfrom torch.utils.tensorboard import SummaryWriter\nimport argparse\nimport logging\nfrom datetime import datetime\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')\n\ndef parse_arguments():\n    parser = argparse.ArgumentParser(description='Training script with best practices')\n    parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs')\n    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')\n    parser.add_argument('--batch_size', type=int, default=64, help='Batch size for training')\n    parser.add_argument('--model_save_path', type=str, default='./checkpoints', help='Path to save model checkpoints')\n    return parser.parse_args()",
-    "description": "Add argument parsing for better configurability and logging setup"
+    "description": "Add argument parsing for better configurability and logging setup",
+    "highlight": [11, 12, 16, 17]
   },
   {
     "file": "train.py",
     "startLine": 51,
     "endLine": 100,
     "newCode": "def train(model, train_loader, val_loader, criterion, optimizer, epochs, device, writer):\n    best_val_loss = float('inf')\n    \n    for epoch in range(epochs):\n        model.train()\n        total_train_loss = 0.0\n        \n        for batch_idx, (data, targets) in enumerate(train_loader):\n            data, targets = data.to(device), targets.to(device)\n            \n            optimizer.zero_grad()\n            outputs = model(data)\n            loss = criterion(outputs, targets)\n            loss.backward()\n            optimizer.step()\n            \n            total_train_loss += loss.item()\n        \n        # Validation phase\n        model.eval()\n        total_val_loss = 0.0\n        with torch.no_grad():\n            for data, targets in val_loader:\n                data, targets = data.to(device), targets.to(device)\n                outputs = model(data)\n                val_loss = criterion(outputs, targets)\n                total_val_loss += val_loss.item()\n        \n        # Logging\n        avg_train_loss = total_train_loss / len(train_loader)\n        avg_val_loss = total_val_loss / len(val_loader)\n        \n        writer.add_scalar('Loss/train', avg_train_loss, epoch)\n        writer.add_scalar('Loss/validation', avg_val_loss, epoch)\n        \n        logging.info(f'Epoch {epoch+1}/{epochs}: Train Loss = {avg_train_loss:.4f}, Val Loss = {avg_val_loss:.4f}')\n        \n        # Model checkpointing\n        if avg_val_loss < best_val_loss:\n            best_val_loss = avg_val_loss\n            torch.save(model.state_dict(), f'{args.model_save_path}/best_model.pth')\n            logging.info(f'Saved best model at epoch {epoch+1}')",
-    "description": "Implement comprehensive training loop with validation, logging, and checkpointing"
+    "description": "Implement comprehensive training loop with validation, logging, and checkpointing",
+    "highlight": [11, 12, 13, 14, 20, 21, 38, 39]
   },
   {
     "file": "train.py",
     "startLine": 101,
     "endLine": 150,
     "newCode": "def main():\n    args = parse_arguments()\n    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')\n    logging.info(f'Using device: {device}')\n    \n    # Dataset and model setup (replace with your specific implementations)\n    train_dataset = YourDataset(train=True)\n    val_dataset = YourDataset(train=False)\n    \n    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)\n    val_loader = DataLoader(val_dataset, batch_size=args.batch_size)\n    \n    model = YourModel().to(device)\n    criterion = nn.CrossEntropyLoss()\n    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)\n    \n    # TensorBoard for visualization\n    current_time = datetime.now().strftime('%Y%m%d_%H%M%S')\n    writer = SummaryWriter(f'runs/{current_time}')\n    \n    # Train the model\n    train(\n        model=model, \n        train_loader=train_loader, \n        val_loader=val_loader,\n        criterion=criterion,\n        optimizer=optimizer, \n        epochs=args.epochs, \n        device=device,\n        writer=writer\n    )\n    \n    writer.close()\n    logging.info('Training complete!')\n\nif __name__ == '__main__':\n    main()",
-    "description": "Add main function with comprehensive setup and execution"
+    "description": "Add main function with comprehensive setup and execution",
+    "highlight": [3, 14, 15, 17, 18, 33]
   }
 ];
 
