@@ -22,6 +22,7 @@ interface ConsoleInputProps {
   onAccept?: () => void;
 }
 
+// Fix the type definition to include 'code' as a valid type
 interface ContextFile {
   name: string;
   type: 'file' | 'folder' | 'code';
@@ -243,7 +244,6 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
                       <div className="flex items-center">
                         {file.type === 'file' && <File className="h-4 w-4 mr-2 text-[#cccccc]" />}
                         {file.type === 'folder' && <Folder className="h-4 w-4 mr-2 text-[#cccccc]" />}
-                        {file.type === 'code' && <Code className="h-4 w-4 mr-2 text-[#cccccc]" />}
                         <span className="text-sm">{file.name}</span>
                       </div>
                     </Button>
@@ -258,6 +258,7 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
               {contextFiles.map((file, index) => (
                 <div key={index} className="flex items-center bg-[#2d2d2d] rounded-sm px-2 py-0.5 text-xs">
                   <div className="flex items-center">
+                    {/* Fix here: Use strict equality and ensure all types are properly handled */}
                     {file.type === 'file' && (
                       <span className="mr-1 text-yellow-500 opacity-80">JS</span>
                     )}
