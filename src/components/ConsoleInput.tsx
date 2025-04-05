@@ -1,7 +1,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, AtSign, Image } from 'lucide-react';
+import { Send, AtSign, Image, File, Folder, Code, FileText, GitBranch, Terminal, AlertTriangle, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ConsoleInputProps {
   onSendMessage: (message: string) => void;
@@ -9,6 +20,11 @@ interface ConsoleInputProps {
   isGenerating?: boolean;
   onStop?: () => void;
   onAccept?: () => void;
+}
+
+interface ContextFile {
+  name: string;
+  type: 'file' | 'folder' | 'code';
 }
 
 const ConsoleInput: React.FC<ConsoleInputProps> = ({ 
@@ -19,6 +35,7 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
   onAccept
 }) => {
   const [message, setMessage] = useState('');
+  const [contextFiles, setContextFiles] = useState<ContextFile[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,6 +53,18 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
     }
   };
 
+  const handleAddContextFile = (fileName: string, type: 'file' | 'folder' | 'code') => {
+    setContextFiles([...contextFiles, { name: fileName, type }]);
+  };
+
+  // Mock file options (in a real app these would come from the repo)
+  const mockFiles = [
+    { name: 'tailwind.config.js', type: 'file' as const },
+    { name: 'vite.config.ts', type: 'file' as const },
+    { name: 'src', type: 'folder' as const },
+    { name: 'components', type: 'folder' as const },
+  ];
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -43,6 +72,12 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [message]);
+
+  const removeContextFile = (index: number) => {
+    const newContextFiles = [...contextFiles];
+    newContextFiles.splice(index, 1);
+    setContextFiles(newContextFiles);
+  };
 
   return (
     <div className="border-t border-[var(--vscode-border)] bg-[var(--vscode-editor-bg)] py-3 px-4 w-full">
@@ -75,10 +110,173 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
       ) : (
         <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-center mb-1 text-xs text-muted-foreground">
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-              <AtSign className="h-3 w-3 mr-1" /> Add context
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                  <AtSign className="h-3 w-3 mr-1" /> Add context
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 bg-[#1e1e1e] border-[var(--vscode-border)]">
+                <div className="p-3 border-b border-[var(--vscode-border)]">
+                  <div className="text-sm text-[#cccccc] mb-2">Add files, folders, docs...</div>
+                  
+                  <div className="space-y-2">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <Folder className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Files & folders</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <Code className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Code</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Docs</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <GitBranch className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Git</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Past chats</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Cursor rules</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <Terminal className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Terminals</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Linter errors</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
+                      onClick={() => {}}
+                    >
+                      <div className="flex items-center">
+                        <Globe className="h-4 w-4 mr-2 text-[#cccccc]" />
+                        <span className="text-sm">Web</span>
+                      </div>
+                      <span className="text-[#cccccc]">›</span>
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Mock file selector (in a real app this would be dynamic based on repo) */}
+                <div className="p-2">
+                  {mockFiles.map((file, index) => (
+                    <Button 
+                      key={index}
+                      variant="ghost" 
+                      className="w-full justify-start flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e] my-0.5"
+                      onClick={() => handleAddContextFile(file.name, file.type)}
+                    >
+                      <div className="flex items-center">
+                        {file.type === 'file' && <File className="h-4 w-4 mr-2 text-[#cccccc]" />}
+                        {file.type === 'folder' && <Folder className="h-4 w-4 mr-2 text-[#cccccc]" />}
+                        {file.type === 'code' && <Code className="h-4 w-4 mr-2 text-[#cccccc]" />}
+                        <span className="text-sm">{file.name}</span>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
+          
+          {contextFiles.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {contextFiles.map((file, index) => (
+                <div key={index} className="flex items-center bg-[#2d2d2d] rounded-sm px-2 py-0.5 text-xs">
+                  <div className="flex items-center">
+                    {file.type === 'file' && (
+                      <span className="mr-1 text-yellow-500 opacity-80">JS</span>
+                    )}
+                    {file.type === 'folder' && <Folder className="h-3 w-3 mr-1" />}
+                    {file.type === 'code' && <Code className="h-3 w-3 mr-1" />}
+                    <span>{file.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                    onClick={() => removeContextFile(index)}
+                  >
+                    <span className="text-[#858585]">×</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
           
           <div className="relative flex items-center border border-[var(--vscode-input-border)] bg-[var(--vscode-input-bg)] rounded-sm">
             <textarea
