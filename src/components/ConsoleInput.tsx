@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, AtSign, Image, File, Folder, Code, FileText, GitBranch, Terminal, AlertTriangle, Globe } from 'lucide-react';
+import { Send, AtSign, Image, File, Folder, Code, FileText, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 
 interface ConsoleInputProps {
   onSendMessage: (message: string) => void;
@@ -26,6 +27,8 @@ interface ConsoleInputProps {
 interface ContextFile {
   name: string;
   type: 'file' | 'folder' | 'code';
+  language?: string;
+  path?: string;
 }
 
 const ConsoleInput: React.FC<ConsoleInputProps> = ({ 
@@ -37,6 +40,7 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
 }) => {
   const [message, setMessage] = useState('');
   const [contextFiles, setContextFiles] = useState<ContextFile[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -54,14 +58,22 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
     }
   };
 
-  const handleAddContextFile = (fileName: string, type: 'file' | 'folder' | 'code') => {
-    setContextFiles([...contextFiles, { name: fileName, type }]);
+  const handleAddContextFile = (fileName: string, type: 'file' | 'folder' | 'code', language?: string, path?: string) => {
+    setContextFiles([...contextFiles, { name: fileName, type, language, path }]);
   };
 
-  // Mock file options (in a real app these would come from the repo)
-  const mockFiles = [
-    { name: 'tailwind.config.js', type: 'file' as const },
-    { name: 'vite.config.ts', type: 'file' as const },
+  // Mock repository files (in a real app these would come from the actual repository)
+  const mockRepoFiles = [
+    { name: 'ConsoleInput.tsx', type: 'file' as const, language: 'TS', path: '...iew-ui/src/components' },
+    { name: 'install-extension.sh', type: 'file' as const, language: 'SH', path: '' },
+    { name: 'ConsoleHeader.tsx', type: 'file' as const, language: 'TS', path: '...w-ui/src/components' },
+    { name: 'setup.sh', type: 'file' as const, language: 'SH', path: '' },
+    { name: 'main.js', type: 'file' as const, language: 'JS', path: 'media' },
+    { name: 'MessageService.ts', type: 'file' as const, language: 'TS', path: 'src/services' },
+    { name: 'ConsoleInterface.tsx', type: 'file' as const, language: 'TS', path: '...ui/src/components' },
+    { name: 'CheckpointCommands.ts', type: 'file' as const, language: 'TS', path: '.../checkpoints' },
+    { name: 'tailwind.config.js', type: 'file' as const, language: 'JS', path: '' },
+    { name: 'vite.config.ts', type: 'file' as const, language: 'TS', path: '' },
     { name: 'src', type: 'folder' as const },
     { name: 'components', type: 'folder' as const },
   ];
@@ -78,6 +90,30 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
     const newContextFiles = [...contextFiles];
     newContextFiles.splice(index, 1);
     setContextFiles(newContextFiles);
+  };
+
+  // Filter files based on search query
+  const filteredFiles = mockRepoFiles.filter(file => 
+    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Get appropriate file icon color based on language/type
+  const getFileIconForType = (file: { name: string, type: string, language?: string }) => {
+    if (file.type === 'folder') {
+      return <Folder className="h-4 w-4 mr-2 text-[#e2c08d]" />;
+    }
+    
+    // Return language indicator based on file extension
+    switch(file.language) {
+      case 'TS':
+        return <span className="w-4 h-4 mr-2 text-[#3178c6] text-xs font-medium flex items-center justify-center">TS</span>;
+      case 'JS':
+        return <span className="w-4 h-4 mr-2 text-[#f7df1e] text-xs font-medium flex items-center justify-center">JS</span>;
+      case 'SH':
+        return <span className="w-4 h-4 mr-2 text-[#89e051] text-xs font-medium flex items-center justify-center">$</span>;
+      default:
+        return <File className="h-4 w-4 mr-2 text-[#cccccc]" />;
+    }
   };
 
   return (
@@ -117,138 +153,40 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
                   <AtSign className="h-3 w-3 mr-1" /> Add context
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 bg-[#1e1e1e] border-[var(--vscode-border)]">
-                <div className="p-3 border-b border-[var(--vscode-border)]">
-                  <div className="text-sm text-[#cccccc] mb-2">Add files, folders, docs...</div>
-                  
-                  <div className="space-y-2">
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <Folder className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Files & folders</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <Code className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Code</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Docs</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <GitBranch className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Git</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Past chats</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Cursor rules</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <Terminal className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Terminals</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <AlertTriangle className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Linter errors</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-between flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e]"
-                      onClick={() => {}}
-                    >
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 mr-2 text-[#cccccc]" />
-                        <span className="text-sm">Web</span>
-                      </div>
-                      <span className="text-[#cccccc]">›</span>
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Mock file selector (in a real app this would be dynamic based on repo) */}
-                <div className="p-2">
-                  {mockFiles.map((file, index) => (
-                    <Button 
-                      key={index}
-                      variant="ghost" 
-                      className="w-full justify-start flex items-center py-1 px-2 h-8 hover:bg-[#2a2d2e] my-0.5"
-                      onClick={() => handleAddContextFile(file.name, file.type)}
-                    >
-                      <div className="flex items-center">
-                        {file.type === 'file' && <File className="h-4 w-4 mr-2 text-[#cccccc]" />}
-                        {file.type === 'folder' && <Folder className="h-4 w-4 mr-2 text-[#cccccc]" />}
-                        <span className="text-sm">{file.name}</span>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
+              <PopoverContent className="w-[450px] p-0 bg-[#1e1e1e] border-[var(--vscode-border)]">
+                <Command className="bg-transparent border-none">
+                  <CommandInput 
+                    placeholder="Search files and folders..." 
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
+                    className="h-9 text-sm"
+                  />
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty>No files found.</CommandEmpty>
+                    <CommandGroup heading="Files & folders">
+                      {filteredFiles.map((file, index) => (
+                        <CommandItem
+                          key={index}
+                          className="flex items-center py-1.5 px-2 cursor-pointer hover:bg-[#2a2d2e]"
+                          onSelect={() => {
+                            handleAddContextFile(file.name, file.type, file.language, file.path);
+                            setSearchQuery('');
+                          }}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              {getFileIconForType(file)}
+                              <span className="text-sm">{file.name}</span>
+                            </div>
+                            {file.path && (
+                              <span className="text-[#6e6e6e] text-xs ml-2">{file.path}</span>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
               </PopoverContent>
             </Popover>
           </div>
@@ -259,8 +197,14 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
                 <div key={index} className="flex items-center bg-[#2d2d2d] rounded-sm px-2 py-0.5 text-xs">
                   <div className="flex items-center">
                     {/* Fix here: Use strict equality and ensure all types are properly handled */}
-                    {file.type === 'file' && (
-                      <span className="mr-1 text-yellow-500 opacity-80">JS</span>
+                    {file.type === 'file' && file.language === 'JS' && (
+                      <span className="mr-1 text-[#f7df1e] opacity-80">JS</span>
+                    )}
+                    {file.type === 'file' && file.language === 'TS' && (
+                      <span className="mr-1 text-[#3178c6] opacity-80">TS</span>
+                    )}
+                    {file.type === 'file' && file.language === 'SH' && (
+                      <span className="mr-1 text-[#89e051] opacity-80">$</span>
                     )}
                     {file.type === 'folder' && <Folder className="h-3 w-3 mr-1" />}
                     {file.type === 'code' && <Code className="h-3 w-3 mr-1" />}
