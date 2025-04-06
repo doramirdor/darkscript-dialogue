@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Check, Copy, X, CornerUpLeft, Maximize } from 'lucide-react';
+import { Check, Copy, X, CornerUpLeft, Maximize, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ interface CodeBlockProps {
   fileName?: string;
   startLine?: number;
   description?: string;
+  onApply?: (code: string, fileName: string) => void;
 }
 
 const CodeBlock: React.FC<CodeBlockProps> = ({
@@ -26,7 +27,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   isAdded = false,
   fileName = '',
   startLine = 1,
-  description = ''
+  description = '',
+  onApply
 }) => {
   const [copied, setCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
@@ -36,6 +38,12 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
       navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleApply = () => {
+    if (onApply && fileName) {
+      onApply(code, fileName);
     }
   };
 
@@ -163,6 +171,17 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
           </span>
         </div>
         <div className="flex items-center space-x-1">
+          {fileName && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 text-muted-foreground hover:text-white flex items-center gap-1 px-2 w-auto"
+              onClick={handleApply}
+            >
+              <ArrowRight className="h-3 w-3" />
+              <span className="text-xs">Apply to {fileName.split('/').pop()}</span>
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="icon" 

@@ -37,9 +37,15 @@ interface MessageBlockProps {
     isRemoved?: boolean;
     isAdded?: boolean;
   })[];
+  onApplyCode?: (code: string, fileName: string) => void;
 }
 
-const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks = [] }) => {
+const MessageBlock: React.FC<MessageBlockProps> = ({ 
+  content, 
+  type, 
+  codeBlocks = [],
+  onApplyCode 
+}) => {
   // Parse content for code-suggestions format
   const parseCodeSuggestions = (content: string) => {
     const regex = /```code-suggestions\s+([\s\S]*?)```/g;
@@ -120,6 +126,7 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
                       highlight={allCodeBlocks[index].highlight}
                       isRemoved={allCodeBlocks[index].isRemoved}
                       isAdded={allCodeBlocks[index].isAdded}
+                      onApply={onApplyCode}
                     />
                   ) : (
                     <CodeBlock 
@@ -128,6 +135,7 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
                       highlight={(allCodeBlocks[index] as any).highlight}
                       isRemoved={(allCodeBlocks[index] as any).isRemoved}
                       isAdded={(allCodeBlocks[index] as any).isAdded}
+                      onApply={onApplyCode}
                     />
                   )
                 )}
@@ -145,6 +153,7 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
                 highlight={suggestion.highlight}
                 isRemoved={suggestion.isRemoved}
                 isAdded={suggestion.isAdded}
+                onApply={onApplyCode}
               />
             ))}
           </>
