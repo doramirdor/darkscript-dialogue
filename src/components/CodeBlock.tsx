@@ -41,27 +41,34 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
 
   const lines = code.trim().split('\n');
   
-  // Simple syntax highlighting similar to VS Code
-  const formatLine = (line: string) => {
+  // Syntax highlighting for different languages
+  const highlightLine = (line: string, language: string) => {
     if (language === 'python') {
-      return line
-        .replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span style="color: #C586C0;">$1</span>')
-        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
-        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
-        .replace(/(#.*$)/g, '<span style="color: #6A9955;">$1</span>')
-        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
-        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
-        .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
+      // Python syntax highlighting
+      return (
+        <span>
+          {line.replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span class="text-[#C586C0]">$1</span>')
+               .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
+               .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
+               .replace(/(#.*$)/g, '<span class="text-[#6A9955]">$1</span>')
+               .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
+               .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
+               .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')}
+        </span>
+      );
     } else {
       // Default JavaScript/TypeScript highlighting
-      return line
-        .replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span style="color: #C586C0;">$1</span>')
-        .replace(/(["'`].*?["'`])/g, '<span style="color: #CE9178;">$1</span>')
-        .replace(/(\b\w+\b)(?=\s*\()/g, '<span style="color: #DCDCAA;">$1</span>')
-        .replace(/(\/\/.*$)/g, '<span style="color: #6A9955;">$1</span>')
-        .replace(/(\b\d+\b)/g, '<span style="color: #B5CEA8;">$1</span>')
-        .replace(/(\.\w+)/g, '<span style="color: #9CDCFE;">$1</span>')
-        .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span style="color: #D4D4D4;">$1</span>');
+      return (
+        <span>
+          {line.replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span class="text-[#C586C0]">$1</span>')
+               .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
+               .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
+               .replace(/(\/\/.*$)/g, '<span class="text-[#6A9955]">$1</span>')
+               .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
+               .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
+               .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')}
+        </span>
+      );
     }
   };
 
@@ -132,7 +139,26 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                       {startLine + i}
                     </span>
                   )}
-                  <span dangerouslySetInnerHTML={{ __html: formatLine(line) }} />
+                  {/* Replace the dangerouslySetInnerHTML with proper syntax highlighting */}
+                  {line.replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, 
+                    '<span class="text-[#C586C0]">$1</span>')
+                    .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
+                    .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
+                    .replace(/(#.*$)/g, '<span class="text-[#6A9955]">$1</span>')
+                    .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
+                    .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
+                    .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')
+                    .split(/<span|<\/span>/).map((part, index) => {
+                      if (index === 0 && !part.includes('class="')) {
+                        return part;
+                      }
+                      if (part.includes('class="')) {
+                        const [classInfo, content] = part.split('>');
+                        const className = classInfo.match(/class="([^"]+)"/)?.[1] || '';
+                        return <span key={index} className={className}>{content}</span>;
+                      }
+                      return part;
+                    })}
                 </div>
               );
             })}
