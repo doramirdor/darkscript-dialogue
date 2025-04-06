@@ -41,34 +41,101 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
 
   const lines = code.trim().split('\n');
   
-  // Syntax highlighting for different languages
-  const highlightLine = (line: string, language: string) => {
+  // Function to highlight code based on language
+  const renderSyntaxHighlightedLine = (line: string, language: string) => {
     if (language === 'python') {
-      // Python syntax highlighting
-      return (
-        <span>
-          {line.replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, '<span class="text-[#C586C0]">$1</span>')
-               .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
-               .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
-               .replace(/(#.*$)/g, '<span class="text-[#6A9955]">$1</span>')
-               .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
-               .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
-               .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')}
-        </span>
-      );
+      // Render Python syntax highlighting
+      const parts = [];
+      let currentPos = 0;
+      
+      // Keywords
+      const keywordRegex = /(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g;
+      let match;
+      while ((match = keywordRegex.exec(line)) !== null) {
+        if (match.index > currentPos) {
+          parts.push(<span key={`text-${currentPos}`}>{line.substring(currentPos, match.index)}</span>);
+        }
+        parts.push(<span key={`keyword-${match.index}`} className="text-[#C586C0]">{match[0]}</span>);
+        currentPos = match.index + match[0].length;
+      }
+      
+      if (currentPos < line.length) {
+        // Process remaining parts of the line
+        const remainingText = line.substring(currentPos);
+        
+        // Strings
+        const remainingParts = remainingText.split(/(['"])(.+?)(['"])/g).filter(Boolean);
+        let isInString = false;
+        
+        remainingParts.forEach((part, i) => {
+          if (part === "'" || part === '"') {
+            isInString = !isInString;
+            parts.push(<span key={`quote-${currentPos}-${i}`} className="text-[#CE9178]">{part}</span>);
+          } else if (isInString) {
+            parts.push(<span key={`string-${currentPos}-${i}`} className="text-[#CE9178]">{part}</span>);
+          } else {
+            // Function calls
+            const funcParts = part.split(/(\b\w+\b)(?=\s*\()/g).filter(Boolean);
+            funcParts.forEach((funcPart, j) => {
+              if (funcPart.match(/\b\w+\b(?=\s*\()/)) {
+                parts.push(<span key={`func-${currentPos}-${i}-${j}`} className="text-[#DCDCAA]">{funcPart}</span>);
+              } else {
+                // Comments
+                const commentParts = funcPart.split(/(#.*$)/g).filter(Boolean);
+                commentParts.forEach((commentPart, k) => {
+                  if (commentPart.startsWith('#')) {
+                    parts.push(<span key={`comment-${currentPos}-${i}-${j}-${k}`} className="text-[#6A9955]">{commentPart}</span>);
+                  } else {
+                    // Numbers
+                    const numParts = commentPart.split(/(\b\d+\.?\d*\b)/g).filter(Boolean);
+                    numParts.forEach((numPart, l) => {
+                      if (numPart.match(/\b\d+\.?\d*\b/)) {
+                        parts.push(<span key={`num-${currentPos}-${i}-${j}-${k}-${l}`} className="text-[#B5CEA8]">{numPart}</span>);
+                      } else {
+                        // Method access
+                        const methodParts = numPart.split(/(\.\w+)/g).filter(Boolean);
+                        methodParts.forEach((methodPart, m) => {
+                          if (methodPart.match(/\.\w+/)) {
+                            parts.push(<span key={`method-${currentPos}-${i}-${j}-${k}-${l}-${m}`} className="text-[#9CDCFE]">{methodPart}</span>);
+                          } else {
+                            parts.push(<span key={`other-${currentPos}-${i}-${j}-${k}-${l}-${m}`}>{methodPart}</span>);
+                          }
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+      
+      return <>{parts.length > 0 ? parts : line}</>;
     } else {
-      // Default JavaScript/TypeScript highlighting
-      return (
-        <span>
-          {line.replace(/(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g, '<span class="text-[#C586C0]">$1</span>')
-               .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
-               .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
-               .replace(/(\/\/.*$)/g, '<span class="text-[#6A9955]">$1</span>')
-               .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
-               .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
-               .replace(/(\{|\}|\(|\)|\[|\]|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')}
-        </span>
-      );
+      // Default JavaScript/TypeScript highlighting with similar approach
+      const jsKeywords = /(const|let|var|await|return|import|export|from|function|process|path|if|else|for|while|switch|case|break|continue|try|catch|finally)/g;
+      
+      const parts = [];
+      let currentPos = 0;
+      
+      // Keywords
+      let match;
+      while ((match = jsKeywords.exec(line)) !== null) {
+        if (match.index > currentPos) {
+          parts.push(<span key={`text-${currentPos}`}>{line.substring(currentPos, match.index)}</span>);
+        }
+        parts.push(<span key={`keyword-${match.index}`} className="text-[#C586C0]">{match[0]}</span>);
+        currentPos = match.index + match[0].length;
+      }
+      
+      if (currentPos < line.length) {
+        // Process remaining parts with similar patterns as Python
+        const remainingText = line.substring(currentPos);
+        parts.push(<span key={`rest-${currentPos}`}>{remainingText}</span>);
+      }
+      
+      return <>{parts.length > 0 ? parts : line}</>;
     }
   };
 
@@ -126,7 +193,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
             {lines.map((line, i) => {
               const isHighlighted = highlight.includes(i+1);
               const lineClasses = cn(
-                "whitespace-pre py-[2px]", 
+                "whitespace-pre py-[2px] flex", 
                 isHighlighted && "vscode-line-highlight bg-[#2a2d2e]",
                 isRemoved && "vscode-deleted-line",
                 isAdded && "vscode-added-line"
@@ -135,30 +202,13 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
               return (
                 <div key={i} className={lineClasses}>
                   {showLineNumbers && (
-                    <span className="inline-block w-8 text-right mr-4 text-[#858585] select-none">
+                    <span className="inline-block w-8 text-right mr-4 text-[#858585] select-none flex-shrink-0">
                       {startLine + i}
                     </span>
                   )}
-                  {/* Replace the dangerouslySetInnerHTML with proper syntax highlighting */}
-                  {line.replace(/(def|class|if|elif|else|for|while|return|import|from|as|with|try|except|finally|raise|assert)/g, 
-                    '<span class="text-[#C586C0]">$1</span>')
-                    .replace(/(["'`].*?["'`])/g, '<span class="text-[#CE9178]">$1</span>')
-                    .replace(/(\b\w+\b)(?=\s*\()/g, '<span class="text-[#DCDCAA]">$1</span>')
-                    .replace(/(#.*$)/g, '<span class="text-[#6A9955]">$1</span>')
-                    .replace(/(\b\d+\.?\d*\b)/g, '<span class="text-[#B5CEA8]">$1</span>')
-                    .replace(/(\.\w+)/g, '<span class="text-[#9CDCFE]">$1</span>')
-                    .replace(/(\{|\}|\(|\)|\[|\]|:|;|,)/g, '<span class="text-[#D4D4D4]">$1</span>')
-                    .split(/<span|<\/span>/).map((part, index) => {
-                      if (index === 0 && !part.includes('class="')) {
-                        return part;
-                      }
-                      if (part.includes('class="')) {
-                        const [classInfo, content] = part.split('>');
-                        const className = classInfo.match(/class="([^"]+)"/)?.[1] || '';
-                        return <span key={index} className={className}>{content}</span>;
-                      }
-                      return part;
-                    })}
+                  <span className="flex-grow">
+                    {renderSyntaxHighlightedLine(line, language)}
+                  </span>
                 </div>
               );
             })}
