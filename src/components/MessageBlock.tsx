@@ -17,6 +17,16 @@ export interface CodeBlockData {
   isAdded?: boolean;
 }
 
+interface CodeSuggestion {
+  file: string;
+  description: string;
+  newCode: string;
+  language?: string;
+  highlight?: number[];
+  isRemoved?: boolean;
+  isAdded?: boolean;
+}
+
 interface MessageBlockProps {
   content: string;
   type: MessageType;
@@ -30,8 +40,47 @@ interface MessageBlockProps {
 }
 
 const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks = [] }) => {
+  // Parse content for code-suggestions format
+  const parseCodeSuggestions = (content: string) => {
+    const regex = /```code-suggestions\s+([\s\S]*?)```/g;
+    const matches = [...content.matchAll(regex)];
+    
+    if (matches.length > 0) {
+      try {
+        const jsonContent = matches[0][1].trim();
+        const parsedSuggestions: CodeSuggestion[] = JSON.parse(jsonContent);
+        return {
+          contentWithoutSuggestions: content.replace(regex, ''),
+          suggestions: parsedSuggestions
+        };
+      } catch (error) {
+        console.error("Failed to parse code suggestions:", error);
+      }
+    }
+    
+    return { contentWithoutSuggestions: content, suggestions: [] };
+  };
+
+  const { contentWithoutSuggestions, suggestions } = parseCodeSuggestions(content);
+  
+  // Convert suggestions to code blocks format
+  const allCodeBlocks = [
+    ...suggestions.map(suggestion => ({
+      file: suggestion.file,
+      startLine: 1,
+      endLine: suggestion.newCode.split('\n').length,
+      newCode: suggestion.newCode,
+      description: suggestion.description,
+      language: suggestion.language || (suggestion.file?.endsWith('.py') ? 'python' : 'typescript'),
+      highlight: suggestion.highlight || [],
+      isRemoved: suggestion.isRemoved || false,
+      isAdded: suggestion.isAdded || false
+    })),
+    ...(codeBlocks || [])
+  ];
+  
   // Split the content by code block placeholders
-  const contentParts = content.split('```code```');
+  const contentParts = contentWithoutSuggestions.split('```code```');
 
   return (
     <div 
@@ -60,29 +109,43 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ content, type, codeBlocks =
                     ))}
                   </div>
                 )}
-                {index < contentParts.length - 1 && index < codeBlocks.length && (
-                  'file' in codeBlocks[index] ? (
+                {index < contentParts.length - 1 && index < allCodeBlocks.length && (
+                  'file' in allCodeBlocks[index] ? (
                     <CodeBlock 
-                      code={codeBlocks[index].newCode || (codeBlocks[index] as any).code} 
-                      language={codeBlocks[index].file?.endsWith('.py') ? 'python' : 'typescript'}
-                      fileName={codeBlocks[index].file}
-                      startLine={(codeBlocks[index] as CodeBlockData).startLine}
-                      description={(codeBlocks[index] as CodeBlockData).description}
-                      highlight={codeBlocks[index].highlight}
-                      isRemoved={codeBlocks[index].isRemoved}
-                      isAdded={codeBlocks[index].isAdded}
+                      code={allCodeBlocks[index].newCode || (allCodeBlocks[index] as any).code} 
+                      language={allCodeBlocks[index].file?.endsWith('.py') ? 'python' : 'typescript'}
+                      fileName={allCodeBlocks[index].file}
+                      startLine={(allCodeBlocks[index] as CodeBlockData).startLine}
+                      description={(allCodeBlocks[index] as CodeBlockData).description}
+                      highlight={allCodeBlocks[index].highlight}
+                      isRemoved={allCodeBlocks[index].isRemoved}
+                      isAdded={allCodeBlocks[index].isAdded}
                     />
                   ) : (
                     <CodeBlock 
-                      code={(codeBlocks[index] as any).code}
-                      language={(codeBlocks[index] as any).language}
-                      highlight={(codeBlocks[index] as any).highlight}
-                      isRemoved={(codeBlocks[index] as any).isRemoved}
-                      isAdded={(codeBlocks[index] as any).isAdded}
+                      code={(allCodeBlocks[index] as any).code}
+                      language={(allCodeBlocks[index] as any).language}
+                      highlight={(allCodeBlocks[index] as any).highlight}
+                      isRemoved={(allCodeBlocks[index] as any).isRemoved}
+                      isAdded={(allCodeBlocks[index] as any).isAdded}
                     />
                   )
                 )}
               </React.Fragment>
+            ))}
+
+            {/* Render any code suggestions that weren't part of the content split */}
+            {suggestions.length > 0 && contentParts.length <= 1 && suggestions.map((suggestion, idx) => (
+              <CodeBlock 
+                key={`suggestion-${idx}`}
+                code={suggestion.newCode}
+                language={suggestion.file?.endsWith('.py') ? 'python' : 'typescript'}
+                fileName={suggestion.file}
+                description={suggestion.description}
+                highlight={suggestion.highlight}
+                isRemoved={suggestion.isRemoved}
+                isAdded={suggestion.isAdded}
+              />
             ))}
           </>
         )}

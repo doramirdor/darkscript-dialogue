@@ -41,6 +41,47 @@ const pythonCodeData: CodeBlockData[] = [
   }
 ];
 
+// Mock code suggestions format example
+const codeSuggestionsExample = `I'll help you improve the \`template/train.py\` file by providing suggestions to enhance its structure, readability, and functionality. I'll use the code-suggestions format to outline the proposed changes.
+
+\`\`\`code-suggestions
+[
+  {
+    "file": "template/train.py",
+    "description": "Add type hints and docstrings for better code clarity",
+    "newCode": "import typing\\nfrom typing import Dict, Any, Optional\\n\\ndef train(\\n config: Dict[str, Any],\\n model_dir: Optional[str] = None\\n) -> Dict[str, float]:\\n \\\"\\\"\\\"\\n Train a machine learning model based on the provided configuration.\\n\\n Args:\\n config (Dict[str, Any]): Configuration dictionary containing training parameters.\\n model_dir (Optional[str], optional): Directory to save the trained model. Defaults to None.\\n\\n Returns:\\n Dict[str, float]: A dictionary of training metrics.\\n \\\"\\\"\\\"\\n # Existing training logic here\\n pass"
+  },
+  {
+    "file": "template/train.py",
+    "description": "Add logging and error handling",
+    "newCode": "import logging\\nimport sys\\n\\nlogging.basicConfig(\\n level=logging.INFO,\\n format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',\\n handlers=[\\n logging.StreamHandler(sys.stdout),\\n logging.FileHandler('training.log')\\n ]\\n)\\n\\nlogger = logging.getLogger(__name__)\\n\\ndef train(config: Dict[str, Any], model_dir: Optional[str] = None) -> Dict[str, float]:\\n try:\\n logger.info(f'Starting training with config: {config}')\\n \\n # Validation of input config\\n if not config:\\n raise ValueError('Configuration cannot be empty')\\n \\n # Existing training logic\\n results = {}\\n \\n logger.info('Training completed successfully')\\n return results\\n \\n except Exception as e:\\n logger.error(f'Training failed: {str(e)}', exc_info=True)\\n raise"
+  },
+  {
+    "file": "template/train.py",
+    "description": "Add progress tracking and early stopping",
+    "newCode": "import time\\nfrom dataclasses import dataclass\\n\\n@dataclass\\nclass EarlyStoppingConfig:\\n patience: int = 3\\n min_delta: float = 0.001\\n\\ndef early_stopping(\\n metric_history: list, \\n config: EarlyStoppingConfig = EarlyStoppingConfig()\\n) -> bool:\\n \\\"\\\"\\\"\\n Determine if training should be stopped early based on performance.\\n\\n Args:\\n metric_history (list): List of performance metrics\\n config (EarlyStoppingConfig): Early stopping configuration\\n\\n Returns:\\n bool: Whether to stop training\\n \\\"\\\"\\\"\\n if len(metric_history) < config.patience:\\n return False\\n \\n recent_metrics = metric_history[-config.patience:]\\n best_metric = max(recent_metrics)\\n return all(\\n best_metric - metric >= config.min_delta\\n for metric in recent_metrics\\n )\\n\\ndef train(config: Dict[str, Any], model_dir: Optional[str] = None) -> Dict[str, float]:\\n metric_history = []\\n start_time = time.time()\\n max_training_time = config.get('max_training_time', 3600) # Default 1 hour\\n\\n while time.time() - start_time < max_training_time:\\n # Training iteration logic\\n current_metric = 0.0 # Replace with actual metric calculation\\n metric_history.append(current_metric)\\n\\n if early_stopping(metric_history):\\n logger.info('Early stopping triggered')\\n break\\n\\n return {'best_metric': max(metric_history) if metric_history else 0.0}"
+  }
+]
+\`\`\`
+
+These suggestions improve the \`template/train.py\` file in several ways:
+
+1. **Type Hints and Docstrings**:
+- Added type hints to improve code readability and enable better IDE support
+- Included comprehensive docstrings explaining function purpose, arguments, and return values
+
+2. **Logging and Error Handling**:
+- Implemented a robust logging system with console and file logging
+- Added error handling with informative logging
+- Included input validation
+- Provides better visibility into the training process
+
+3. **Progress Tracking and Early Stopping**:
+- Introduced an \`EarlyStoppingConfig\` dataclass for configurable early stopping
+- Created an \`early_stopping()\` function to intelligently halt training
+- Added a time-based training limit
+- Provides more control and efficiency in the training process`;
+
 const INITIAL_MESSAGES: Message[] = [
   {
     id: '1',
@@ -58,6 +99,11 @@ const INITIAL_MESSAGES: Message[] = [
     content: '```code```Next, let\'s implement a robust training loop with validation, logging, and model checkpointing:```code```',
     type: 'system',
     codeBlocks: [pythonCodeData[1], pythonCodeData[2]]
+  },
+  {
+    id: '4',
+    content: codeSuggestionsExample,
+    type: 'system',
   }
 ];
 
