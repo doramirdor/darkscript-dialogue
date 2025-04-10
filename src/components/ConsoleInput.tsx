@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, AtSign, Image, File, Folder, Code, FileText, Search } from 'lucide-react';
+import { Send, AtSign, Image, File, Folder, Code, FileText, Search, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -31,6 +31,13 @@ interface ContextFile {
   path?: string;
 }
 
+// Available AI models
+const aiModels = [
+  { name: "GPT-4o-mini", description: "Fast and affordable" },
+  { name: "GPT-4o", description: "Powerful and versatile" },
+  { name: "GPT-4.5-preview", description: "Most advanced" }
+];
+
 const ConsoleInput: React.FC<ConsoleInputProps> = ({ 
   onSendMessage, 
   placeholder = "Plan, search, build anything", 
@@ -41,6 +48,7 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
   const [message, setMessage] = useState('');
   const [contextFiles, setContextFiles] = useState<ContextFile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedModel, setSelectedModel] = useState(aiModels[0]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -252,9 +260,34 @@ const ConsoleInput: React.FC<ConsoleInputProps> = ({
               <span className="inline-flex items-center">
                 Agent #1
               </span>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                Auto
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                    {selectedModel.name !== "Auto" ? selectedModel.name : "Auto"}
+                    <ChevronUp className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  alignOffset={-5}
+                  className="w-[200px] bg-[#1e1e1e] border-[var(--vscode-border)]"
+                  sideOffset={5}
+                  side="top"
+                >
+                  {aiModels.map((model) => (
+                    <DropdownMenuItem
+                      key={model.name}
+                      className="flex flex-col items-start py-2"
+                      onClick={() => setSelectedModel(model)}
+                    >
+                      <span className="text-sm font-medium">{model.name}</span>
+                      {model.description && (
+                        <span className="text-xs text-muted-foreground mt-0.5">{model.description}</span>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="text-xs text-muted-foreground opacity-80">
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
