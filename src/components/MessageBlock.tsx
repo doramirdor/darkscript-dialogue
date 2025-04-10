@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import CodeBlock from './CodeBlock';
 
@@ -38,38 +37,56 @@ interface MessageBlockProps {
     isAdded?: boolean;
   })[];
   onApplyCode?: (code: string, fileName: string) => void;
+  isStreaming?: boolean;
+  latestResponse?: string;
 }
 
 const MessageBlock: React.FC<MessageBlockProps> = ({ 
   content, 
   type, 
   codeBlocks = [],
-  onApplyCode 
+  onApplyCode,
+  isStreaming = false,
+  latestResponse = ''
 }) => {
-  // Parse content for code-suggestions format
-  const parseCodeSuggestions = (content: string) => {
-    const regex = /```code-suggestions\s+([\s\S]*?)```/g;
-    const matches = [...content.matchAll(regex)];
-    
-    if (matches.length > 0) {
-      try {
-        const jsonContent = matches[0][1].trim();
-        const parsedSuggestions: CodeSuggestion[] = JSON.parse(jsonContent);
-        return {
-          contentWithoutSuggestions: content.replace(regex, ''),
-          suggestions: parsedSuggestions
-        };
-      } catch (error) {
-        console.error("Failed to parse code suggestions:", error);
+  const [streamedContent, setStreamedContent] = useState(content);
+  const [streamedCodeBlocks, setStreamedCodeBlocks] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isStreaming && latestResponse) {
+      setStreamedContent(latestResponse);
+      
+      const extractedBlocks = extractCodeBlocksFromContent(latestResponse);
+      if (extractedBlocks.length > 0) {
+        setStreamedCodeBlocks(extractedBlocks);
       }
+    } else if (!isStreaming) {
+      setStreamedContent(content);
+      setStreamedCodeBlocks([]);
+    }
+  }, [latestResponse, isStreaming, content]);
+
+  const extractCodeBlocksFromContent = (text: string) => {
+    const codeBlockRegex = /```(\w*)\s*([\s\S]*?)```/g;
+    const blocks = [];
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      const language = match[1] || 'typescript';
+      const code = match[2].trim();
+      
+      blocks.push({
+        code,
+        language,
+      });
     }
     
-    return { contentWithoutSuggestions: content, suggestions: [] };
+    return blocks;
   };
 
-  const { contentWithoutSuggestions, suggestions } = parseCodeSuggestions(content);
+  const contentToUse = isStreaming ? streamedContent : content;
+  const { contentWithoutSuggestions, suggestions } = parseCodeSuggestions(contentToUse);
   
-  // Convert suggestions to code blocks format
   const allCodeBlocks = [
     ...suggestions.map(suggestion => ({
       file: suggestion.file,
@@ -82,11 +99,20 @@ const MessageBlock: React.FC<MessageBlockProps> = ({
       isRemoved: suggestion.isRemoved || false,
       isAdded: suggestion.isAdded || false
     })),
-    ...(codeBlocks || [])
+    ...(isStreaming ? streamedCodeBlocks : codeBlocks || [])
   ];
   
-  // Split the content by code block placeholders
-  const contentParts = contentWithoutSuggestions.split('```code```');
+  const contentParts = isStreaming
+    ? processStreamedContent(contentWithoutSuggestions)
+    : contentWithoutSuggestions.split('```code```');
+
+  function processStreamedContent(text: string) {
+    let processedText = text;
+    const codeBlockRegex = /```(\w*)\s*([\s\S]*?)```/g;
+    processedText = processedText.replace(codeBlockRegex, '```code```');
+    
+    return processedText.split('```code```');
+  }
 
   return (
     <div 
@@ -142,7 +168,12 @@ const MessageBlock: React.FC<MessageBlockProps> = ({
               </React.Fragment>
             ))}
 
-            {/* Render any code suggestions that weren't part of the content split */}
+            {isStreaming && contentToUse.endsWith('```') && !contentToUse.endsWith('```\n') && (
+              <div className="prose prose-invert prose-pre:bg-[#1e1e1e] prose-pre:text-sm max-w-none text-[13px] leading-relaxed">
+                <p className="blink">■</p>
+              </div>
+            )}
+
             {suggestions.length > 0 && contentParts.length <= 1 && suggestions.map((suggestion, idx) => (
               <CodeBlock 
                 key={`suggestion-${idx}`}

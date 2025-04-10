@@ -15,6 +15,8 @@ interface Message {
     isRemoved?: boolean;
     isAdded?: boolean;
   }>;
+  isStreaming?: boolean;
+  latestResponse?: string;
 }
 
 const pythonCodeData: CodeBlockData[] = [
@@ -110,6 +112,7 @@ const INITIAL_MESSAGES: Message[] = [
 const ConsoleInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = (content: string) => {
@@ -120,41 +123,114 @@ const ConsoleInterface: React.FC = () => {
     };
     
     setMessages([...messages, newMessage]);
-    // Simulate a response
+    // Simulate a streaming response
     setIsGenerating(true);
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        content: 'Generating',
-        type: 'loading',
-      }]);
-    }, 500);
+    
+    // Create the initial streaming message
+    const initialStreamingMsg: Message = {
+      id: `stream-${Date.now().toString()}`,
+      content: '',
+      type: 'system',
+      isStreaming: true,
+      latestResponse: ''
+    };
+    
+    setStreamingMessage(initialStreamingMsg);
+    
+    // Simulate streaming by adding content incrementally
+    simulateStreaming(initialStreamingMsg);
+  };
+
+  // Function to simulate streaming for demonstration
+  const simulateStreaming = (initialMsg: Message) => {
+    const fullResponse = "I'll help you implement that feature.\n\nFirst, let's look at the core functionality:\n\n```typescript\nconst streamHandler = (stream: ReadableStream) => {\n  const reader = stream.getReader();\n  let accumulator = '';\n  \n  function processText({ done, value }: ReadableStreamReadResult<Uint8Array>): Promise<void> {\n    if (done) {\n      console.log('Stream complete');\n      return Promise.resolve();\n    }\n    \n    // Decode the stream chunk\n    const chunk = new TextDecoder().decode(value);\n    accumulator += chunk;\n    \n    // Update UI with accumulated content\n    updateUI(accumulator);\n    \n    // Continue reading\n    return reader.read().then(processText);\n  }\n  \n  reader.read().then(processText);\n};\n```\n\nNow let's implement the component that will display this:\n\n```typescript\ninterface StreamingProps {\n  content: string;\n  isComplete: boolean;\n}\n\nconst StreamingComponent: React.FC<StreamingProps> = ({ content, isComplete }) => {\n  return (\n    <div className=\"streaming-content\">\n      {content}\n      {!isComplete && <span className=\"cursor\">■</span>}\n    </div>\n  );\n};\n```";
+    
+    const chunks = [];
+    let currentPosition = 0;
+    const chunkSize = 15; // Characters per chunk
+    
+    while (currentPosition < fullResponse.length) {
+      chunks.push(fullResponse.substring(currentPosition, currentPosition + chunkSize));
+      currentPosition += chunkSize;
+    }
+    
+    let chunkIndex = 0;
+    const streamInterval = setInterval(() => {
+      if (chunkIndex >= chunks.length) {
+        clearInterval(streamInterval);
+        setIsGenerating(false);
+        
+        // Add the final message to the messages list
+        setMessages(prevMessages => [
+          ...prevMessages.filter(msg => msg.id !== initialMsg.id), 
+          {
+            id: Date.now().toString(),
+            content: fullResponse,
+            type: 'system',
+            isStreaming: false
+          }
+        ]);
+        
+        setStreamingMessage(null);
+        return;
+      }
+      
+      const accumulatedContent = fullResponse.substring(0, (chunkIndex + 1) * chunkSize);
+      
+      // Update the streaming message
+      setStreamingMessage(prevMsg => 
+        prevMsg ? {
+          ...prevMsg,
+          latestResponse: accumulatedContent
+        } : null
+      );
+      
+      chunkIndex++;
+    }, 100);
   };
 
   const handleStopGenerating = () => {
     setIsGenerating(false);
-    setMessages(prev => prev.filter(msg => msg.type !== 'loading'));
+    
+    if (streamingMessage) {
+      // Add the partial message to the regular messages
+      setMessages(prev => [
+        ...prev.filter(msg => msg.id !== streamingMessage.id),
+        {
+          id: Date.now().toString(),
+          content: streamingMessage.latestResponse || '',
+          type: 'system',
+          isStreaming: false
+        }
+      ]);
+      
+      setStreamingMessage(null);
+    }
   };
 
   const handleAcceptGenerating = () => {
-    setIsGenerating(false);
-    setMessages(prev => {
-      const newMessages = prev.filter(msg => msg.type !== 'loading');
-      return [
-        ...newMessages, 
+    if (streamingMessage) {
+      // Add the current state of streaming message to regular messages
+      setMessages(prev => [
+        ...prev.filter(msg => msg.id !== streamingMessage.id),
         {
           id: Date.now().toString(),
-          content: 'The training script is now complete with argument parsing, a comprehensive training loop with validation, and a main function to tie everything together. You can run this script with various command line arguments like:\n\n```python train.py --epochs 50 --learning_rate 0.0005 --batch_size 32```',
+          content: streamingMessage.latestResponse || '',
           type: 'system',
+          isStreaming: false
         }
-      ];
-    });
+      ]);
+      
+      setStreamingMessage(null);
+    }
+    
+    setIsGenerating(false);
   };
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingMessage]);
 
   return (
     <div className="flex flex-col h-screen bg-[var(--vscode-editor-bg)] vscode-dark">
@@ -175,8 +251,28 @@ const ConsoleInterface: React.FC = () => {
             content={message.content}
             type={message.type}
             codeBlocks={message.codeBlocks}
+            onApplyCode={(code, fileName) => {
+              console.log(`Applying code to ${fileName}:`, code);
+              // Handle code application logic here
+            }}
           />
         ))}
+        
+        {/* Render the streaming message if it exists */}
+        {streamingMessage && (
+          <MessageBlock 
+            key={streamingMessage.id}
+            content={streamingMessage.content}
+            type={streamingMessage.type}
+            isStreaming={true}
+            latestResponse={streamingMessage.latestResponse}
+            onApplyCode={(code, fileName) => {
+              console.log(`Applying code to ${fileName}:`, code);
+              // Handle code application logic here
+            }}
+          />
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
       
