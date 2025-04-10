@@ -41,6 +41,41 @@ interface MessageBlockProps {
   latestResponse?: string;
 }
 
+const parseCodeSuggestions = (content: string): { contentWithoutSuggestions: string, suggestions: CodeSuggestion[] } => {
+  try {
+    const regex = /```code-suggestions\s*([\s\S]*?)\s*```/g;
+    let match;
+    let contentWithoutSuggestions = content;
+    const suggestions: CodeSuggestion[] = [];
+    
+    while ((match = regex.exec(content)) !== null) {
+      const suggestionBlock = match[1].trim();
+      
+      try {
+        const parsedSuggestions = JSON.parse(suggestionBlock);
+        if (Array.isArray(parsedSuggestions)) {
+          suggestions.push(...parsedSuggestions);
+        }
+      } catch (e) {
+        console.error('Error parsing code suggestions JSON:', e);
+      }
+      
+      contentWithoutSuggestions = contentWithoutSuggestions.replace(match[0], '');
+    }
+    
+    return {
+      contentWithoutSuggestions,
+      suggestions
+    };
+  } catch (error) {
+    console.error('Error parsing code suggestions:', error);
+    return {
+      contentWithoutSuggestions: content,
+      suggestions: []
+    };
+  }
+};
+
 const MessageBlock: React.FC<MessageBlockProps> = ({ 
   content, 
   type, 
