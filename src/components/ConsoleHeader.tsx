@@ -1,32 +1,21 @@
 
 import React from 'react';
-import { X, Maximize, Minimize, Plus, RotateCcw, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface ConsoleHeaderProps {
   title: string;
+  children?: React.ReactNode;
 }
 
-const ConsoleHeader: React.FC<ConsoleHeaderProps> = ({ title }) => {
+const ConsoleHeader: React.FC<ConsoleHeaderProps> = ({ title, children }) => {
   return (
-    <div className="vscode-title-bar">
-      <div className="flex items-center space-x-2">
-        <h1 className="vscode-title-text">{title}</h1>
+    <div className="flex items-center justify-between py-2 px-4 border-b border-[var(--vscode-border)]">
+      <div className="flex items-center">
+        <div className="w-3 h-3 rounded-full bg-red-500 mx-1"></div>
+        <div className="w-3 h-3 rounded-full bg-yellow-500 mx-1"></div>
+        <div className="w-3 h-3 rounded-full bg-green-500 mx-1"></div>
+        <span className="ml-2 font-medium text-sm">{title}</span>
       </div>
-      <div className="vscode-title-actions">
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
-          <MoreHorizontal className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      {children}
     </div>
   );
 };

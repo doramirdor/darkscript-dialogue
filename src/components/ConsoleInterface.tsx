@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ConsoleHeader from './ConsoleHeader';
 import ConsoleInput from './ConsoleInput';
 import MessageBlock, { MessageType, CodeBlockData } from './MessageBlock';
+import StreamingSimplutionButton from './StreamingSimplutionButton';
 
 interface Message {
   id: string;
@@ -114,6 +115,7 @@ const ConsoleInterface: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showingSimplution, setShowingSimplution] = useState(false);
 
   const handleSendMessage = (content: string) => {
     const newMessage: Message = {
@@ -172,6 +174,7 @@ const ConsoleInterface: React.FC = () => {
         ]);
         
         setStreamingMessage(null);
+        setShowingSimplution(false);
         return;
       }
       
@@ -227,6 +230,36 @@ const ConsoleInterface: React.FC = () => {
     setIsGenerating(false);
   };
 
+  const handleShowSimplution = () => {
+    setShowingSimplution(true);
+    
+    // Create synthetic user message for demo
+    const demoUserMessage: Message = {
+      id: `demo-user-${Date.now().toString()}`,
+      content: 'Show me a streaming demonstration',
+      type: 'user',
+    };
+    
+    // Add the user message
+    setMessages(prev => [...prev, demoUserMessage]);
+    
+    // Create the initial streaming message for demo
+    const demoStreamingMsg: Message = {
+      id: `demo-stream-${Date.now().toString()}`,
+      content: '',
+      type: 'system',
+      isStreaming: true,
+      latestResponse: ''
+    };
+    
+    // Start streaming after a short delay
+    setTimeout(() => {
+      setIsGenerating(true);
+      setStreamingMessage(demoStreamingMsg);
+      simulateStreaming(demoStreamingMsg);
+    }, 500);
+  };
+
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -234,7 +267,12 @@ const ConsoleInterface: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[var(--vscode-editor-bg)] vscode-dark">
-      <ConsoleHeader title="PyTorch Training Script Generator" />
+      <ConsoleHeader title="PyTorch Training Script Generator">
+        <StreamingSimplutionButton 
+          onShowSimplution={handleShowSimplution} 
+          className="ml-auto" 
+        />
+      </ConsoleHeader>
       
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="py-2 border-b border-[var(--vscode-border)] bg-[#2d2d2d]">
