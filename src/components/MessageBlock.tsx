@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import CodeBlock from './CodeBlock';
@@ -203,9 +204,9 @@ const MessageBlock: React.FC<MessageBlockProps> = ({
               </React.Fragment>
             ))}
 
-            {isStreaming && contentToUse.endsWith('```') && !contentToUse.endsWith('```\n') && (
+            {isStreaming && streamedContent && !streamedContent.endsWith('```') && (
               <div className="prose prose-invert prose-pre:bg-[#1e1e1e] prose-pre:text-sm max-w-none text-[13px] leading-relaxed">
-                <p className="blink">■</p>
+                <span className="inline-block animate-pulse">■</span>
               </div>
             )}
 
